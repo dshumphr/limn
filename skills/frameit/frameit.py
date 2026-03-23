@@ -1,4 +1,5 @@
 import argparse
+import base64
 import json
 import os
 import requests
@@ -10,13 +11,17 @@ def generate_timestamp():
 
 
 def download_image(url, path):
-    response = requests.get(url)
-    if response.status_code == 200:
-        os.makedirs(os.path.dirname(path), exist_ok=True)
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    if url.startswith("data:"):
+        header, encoded = url.split(",", 1)
+        with open(path, "wb") as f:
+            f.write(base64.b64decode(encoded))
+    else:
+        response = requests.get(url)
+        if response.status_code != 200:
+            raise RuntimeError(f"Failed to download image from {url}: {response.status_code}")
         with open(path, "wb") as f:
             f.write(response.content)
-    else:
-        raise RuntimeError(f"Failed to download image from {url}: {response.status_code}")
 
 
 def upload_image(image_path):
