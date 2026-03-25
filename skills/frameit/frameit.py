@@ -58,7 +58,7 @@ def edit_image(image_path, prompt, fal_key):
     data = {
         "image_url": image_url,
         "prompt": prompt,
-        "strength": 0.85,
+        "strength": 0.95,
         "num_inference_steps": 40,
         "sync_mode": True,
         "output_format": "png",
