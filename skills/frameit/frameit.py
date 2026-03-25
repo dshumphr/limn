@@ -91,16 +91,14 @@ def save_json(data, path):
 
 
 def find_last_small_image(images_dir):
-    candidates = sorted(
-        [
-            f for f in os.listdir(images_dir)
-            if f.endswith(".png") and "_upscaled" not in f
-        ],
-        reverse=True,
-    )
+    candidates = [
+        os.path.join(images_dir, f)
+        for f in os.listdir(images_dir)
+        if f.endswith(".png") and "_upscaled" not in f
+    ]
     if not candidates:
         return None
-    return os.path.join(images_dir, candidates[0])
+    return max(candidates, key=os.path.getmtime)
 
 
 def main():

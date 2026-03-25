@@ -32,7 +32,7 @@ Every invocation saves three files to `images/`:
 | `YYYYMMDD_HHMMSS_upscaled.png` | 4× AuraSR upscaled version |
 | `YYYYMMDD_HHMMSS.json` | Metadata: original prompt, improved prompt, mode, file paths |
 
-File names sort identically alphabetically and chronologically.
+File names sort identically alphabetically and chronologically. To find the most recent image, use `ls -t images/*.png | head -1` (sorts by modification time, newest first).
 
 ## Examples
 
@@ -43,6 +43,12 @@ python skills/frameit/frameit.py \
   "A towering medieval castle rises from a fog-shrouded cliff above a restless grey sea, its battlements lit by amber dusk light, painted in the style of Caspar David Friedrich." \
   --mode gen \
   --original-prompt "castle"
+```
+
+### Find the most recent image
+
+```bash
+ls -t images/*.png | head -1
 ```
 
 ### Edit (auto-selects most recent small image)
@@ -67,5 +73,6 @@ python skills/frameit/frameit.py \
 ## Important Rules
 
 - **Never pass an `_upscaled.png` file to `--edit`.** Always use the small version.
+- To find the most recent image of any kind, use `ls -t images/*.png | head -1`. To find the most recent small (non-upscaled) image, use `ls -t images/*.png | grep -v '_upscaled' | head -1`.
 - Always pass `--original-prompt` with the user's raw input so the JSON record is complete.
 - The improved prompt passed as the positional argument is what gets sent to the model.
