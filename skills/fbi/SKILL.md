@@ -43,3 +43,4 @@ sudo fbi -a -noverbose -T 1 -t 10 --once images/*_upscaled.png
 - Always prefer displaying `_upscaled.png` files for best visual quality.
 - Always run with `sudo` to avoid framebuffer/TTY permission issues, especially over SSH.
 - To kill an active `fbi` instance: `sudo pkill fbi`
+- **Never use the View tool to display images.** Always use `sudo fbi` via bash. The View tool does not display on the framebuffer.
