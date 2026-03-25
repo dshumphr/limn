@@ -5,7 +5,7 @@ Displays images on the Linux framebuffer using `fbi` (framebuffer imageviewer). 
 ## Usage
 
 ```bash
-fbi -a -noverbose -T 1 <image_path>
+sudo fbi -a -noverbose -T 1 <image_path>
 ```
 
 ### Common Flags
@@ -23,23 +23,23 @@ fbi -a -noverbose -T 1 <image_path>
 ### Display the most recent upscaled image
 
 ```bash
-fbi -a -noverbose -T 1 images/$(ls images/ | grep '_upscaled' | sort | tail -1)
+sudo fbi -a -noverbose -T 1 images/$(ls images/ | grep '_upscaled' | sort | tail -1)
 ```
 
 ### Display a specific image
 
 ```bash
-fbi -a -noverbose -T 1 images/20260320_141023_upscaled.png
+sudo fbi -a -noverbose -T 1 images/20260320_141023_upscaled.png
 ```
 
 ### Slideshow of all upscaled images
 
 ```bash
-fbi -a -noverbose -T 1 -t 10 --once images/*_upscaled.png
+sudo fbi -a -noverbose -T 1 -t 10 --once images/*_upscaled.png
 ```
 
 ## Notes
 
 - Always prefer displaying `_upscaled.png` files for best visual quality.
-- Requires root or membership in the `video` group on most systems.
+- Always run with `sudo` to avoid framebuffer/TTY permission issues, especially over SSH.
 - To kill an active `fbi` instance: `sudo pkill fbi`
