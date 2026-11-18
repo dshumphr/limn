@@ -166,7 +166,7 @@ def _run_generation(job_id: int, transcript: str) -> None:
         env["FAL_KEY"] = FAL_KEY
     try:
         proc = subprocess.Popen(
-            [OMP_BIN, "-p", prompt, "--no-session", "--cwd", str(LIMN_DIR)],
+            [OMP_BIN, "-p", prompt, "--no-session", "--smol", "--cwd", str(LIMN_DIR)],
             env=env,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
