@@ -30,18 +30,25 @@ def upload_image(image_path):
         return fal_client.upload(f, "image/png")
 
 
-def generate_image(prompt, fal_key):
+def generate_image(prompt, fal_key, size="small"):
     url = "https://fal.run/fal-ai/flux/schnell"
     headers = {
         "Authorization": f"Key {fal_key}",
         "Content-Type": "application/json",
     }
+    # "small": 1024x576 png (legacy path, used as edit source).
+    # "tv": native 2048x1152 jpeg — exceeds 1080p TVs directly, no upscaler
+    # needed; measured 2.3s/$0.004 (2026-11-17), vs ~18s/$0.015 via AuraSR.
+    if size == "tv":
+        dims, fmt = {"width": 2048, "height": 1152}, "jpeg"
+    else:
+        dims, fmt = "landscape_16_9", "png"
     data = {
         "prompt": prompt,
-        "image_size": "landscape_16_9",
+        "image_size": dims,
         "num_inference_steps": 4,
         "sync_mode": True,
-        "output_format": "png",
+        "output_format": fmt,
     }
     response = requests.post(url, headers=headers, json=data)
     response.raise_for_status()
@@ -116,6 +123,14 @@ def main():
         help="Mode: 'gen' for text-to-image (default), 'edit' for image-to-image",
     )
     parser.add_argument(
+        "--size",
+        choices=["small", "tv"],
+        default="small",
+        help="'small': 1024x576 png + AuraSR 4x upscale (default, legacy). "
+             "'tv': single-pass native 2048x1152 jpeg, no upscale — use for "
+             "voice-button/TV display generation (gen mode only).",
+    )
+    parser.add_argument(
         "--save-dir",
         default=os.path.join(os.path.dirname(__file__), "..", "..", "images"),
         help="Directory to save outputs (default: images/ at project root)",
@@ -138,9 +153,33 @@ def main():
     upscaled_path = os.path.join(save_dir, f"{timestamp}_upscaled.png")
     json_path = os.path.join(save_dir, f"{timestamp}.json")
 
+    if args.size == "tv" and args.mode == "edit":
+        raise ValueError("--size tv only applies to --mode gen (edit works from small pngs).")
+
     if args.mode == "gen":
+        if args.size == "tv":
+            tv_path = os.path.join(save_dir, f"{timestamp}.jpg")
+            json_path = os.path.join(save_dir, f"{timestamp}.json")
+            print(f"Generating TV-size image for prompt: {args.prompt}")
+            generated_url = generate_image(args.prompt, fal_key, size="tv")
+            download_image(generated_url, tv_path)
+            print(f"Saved TV image: {tv_path}")
+            save_json(
+                {
+                    "timestamp": timestamp,
+                    "mode": "gen_tv",
+                    "original_prompt": args.original_prompt or "",
+                    "prompt": args.prompt,
+                    "small": None,
+                    "upscaled": tv_path,
+                },
+                json_path,
+            )
+            print(f"Done. TV image at: {tv_path}")
+            return
+
         print(f"Generating image for prompt: {args.prompt}")
-        generated_url = generate_image(args.prompt, fal_key)
+        generated_url = generate_image(args.prompt, fal_key, size="small")
         download_image(generated_url, small_path)
         print(f"Saved small image: {small_path}")
 

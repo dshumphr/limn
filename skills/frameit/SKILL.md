@@ -14,6 +14,8 @@ python skills/frameit/frameit.py "<improved_prompt>" [options]
 |------|-------------|
 | `--mode gen` | Text-to-image generation (default) |
 | `--mode edit` | Image-to-image edit |
+| `--size small` | 1024x576 png + AuraSR 4x upscale (default; legacy path, edit source) |
+| `--size tv` | Single-pass native 2048x1152 jpeg, no upscale (~2.5s, ~$0.004). Use for voice-button/TV display generation. Gen mode only. |
 | `--edit <path>` | Path to the small image to edit (edit mode only; omit to auto-use the most recent) |
 | `--original-prompt "<text>"` | The raw user prompt before improvement (stored in JSON) |
 | `--save-dir <path>` | Output directory (default: `images/`) |
@@ -32,7 +34,9 @@ Every invocation saves three files to `images/`:
 | `YYYYMMDD_HHMMSS_upscaled.png` | 4× AuraSR upscaled version |
 | `YYYYMMDD_HHMMSS.json` | Metadata: original prompt, improved prompt, mode, file paths |
 
-File names sort identically alphabetically and chronologically. To find the most recent image, use `ls -t images/*.png | head -1` (sorts by modification time, newest first).
+With `--size tv` (gen mode), output is a single `YYYYMMDD_HHMMSS.jpg` (2048x1152)
+plus its `.json` — no pngs, no upscale step. File names sort identically
+alphabetically and chronologically. To find the most recent image, use `ls -t images/*.png images/*.jpg | head -1` (sorts by modification time, newest first).
 
 ## Examples
 

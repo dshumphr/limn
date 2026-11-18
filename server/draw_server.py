@@ -139,8 +139,12 @@ def base64_bytes(wav_path: Path) -> str:
 # generation
 # ---------------------------------------------------------------------------
 
-def _newest_upscaled_after(ts: float) -> Path | None:
-    candidates = [p for p in IMAGES_DIR.glob("*_upscaled.png") if p.stat().st_mtime >= ts]
+def _newest_image_after(ts: float) -> Path | None:
+    candidates = [
+        p
+        for p in IMAGES_DIR.iterdir()
+        if p.suffix in (".png", ".jpg") and p.stat().st_mtime >= ts
+    ]
     return max(candidates, key=lambda p: p.stat().st_mtime) if candidates else None
 
 
@@ -150,9 +154,12 @@ def _run_generation(job_id: int, transcript: str) -> None:
     prompt = (
         f'Voice request from the draw button (a small child spoke this): "{transcript}". '
         "Treat it as an image request. Improve the prompt per your instructions, "
-        "then generate it with skills/frameit. Do not attempt to display the image; "
-        "just generate it and report the saved file paths. Generate exactly once; "
-        "if the generation fails, report the failure instead of retrying."
+        "then generate it with skills/frameit using `--size tv` (fast TV-resolution "
+        "path). This is a one-shot request: generate exactly once; if the generation "
+        "fails, report the failure instead of retrying. If the request refers to a "
+        "previous image (e.g. \"make it bigger\", \"make it snowier\"), treat it as an "
+        "edit of the most recent image per skills/frameit edit rules and say so in "
+        "your reply."
     )
     env = os.environ.copy()
     if FAL_KEY:
@@ -173,7 +180,7 @@ def _run_generation(job_id: int, transcript: str) -> None:
             raise RuntimeError(f"omp timed out after {OMP_TIMEOUT_S}s")
         if proc.returncode != 0:
             raise RuntimeError(f"omp exit {proc.returncode}: {err[-500:]}")
-        img = _newest_upscaled_after(started)
+        img = _newest_image_after(started)
         if img is None:
             raise RuntimeError("omp finished but no new image appeared in images/")
         _set_state(status="done", image=f"/image/{img.name}")
@@ -219,7 +226,7 @@ async def state() -> JSONResponse:
         return JSONResponse(dict(_state))
 
 
-_IMAGE_RE = re.compile(r"^[A-Za-z0-9_\-]+\.png$")
+_IMAGE_RE = re.compile(r"^[A-Za-z0-9_\-]+\.(?:png|jpg)$")
 
 
 @app.get("/image/{name}")
@@ -229,7 +236,8 @@ async def image(name: str) -> FileResponse:
     path = IMAGES_DIR / name
     if not path.exists():
         return JSONResponse({"error": "not found"}, status_code=404)
-    return FileResponse(path, media_type="image/png", headers={"Cache-Control": "no-cache"})
+    media = "image/png" if name.endswith(".png") else "image/jpeg"
+    return FileResponse(path, media_type=media, headers={"Cache-Control": "no-cache"})
 
 
 @app.get("/")
@@ -290,7 +298,7 @@ async function poll() {
     if (!s.image && s.status === 'idle') hint.style.display = 'block';
   } catch (e) { /* server briefly down; keep last image */ }
 }
-setInterval(poll, 2000);
+setInterval(poll, 1000);
 poll();
 </script>
 </body>
