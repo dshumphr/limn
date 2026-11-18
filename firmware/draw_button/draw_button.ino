@@ -17,7 +17,7 @@
 //    rotate the STA MAC's low bytes every boot — new client, instant join.
 //
 // Tones:
-//   boot          : two ascending beeps (Wi-Fi up, ready) ~3-5 s after power/reset
+//   boot          : three ascending notes (Wi-Fi up, ready) ~3-5 s after power/reset
 //   record start  : short blip after pressing (recording begins right after)
 //   record stop   : short blip after release
 //   success       : ascending triad (server accepted the request)
@@ -88,9 +88,9 @@ static void playTones(const int (*seq)[2], int n) {
   M5.Speaker.end();
 }
 
-static const int CHIME_BOOT[][2] = {{880, 90}, {0, 40}, {1320, 120}};
+static const int CHIME_BOOT[][2] = {{880, 280}, {0, 220}, {1175, 280}, {0, 220}, {1568, 450}};
 static const int CHIME_OK[][2] = {{660, 100}, {880, 100}, {1320, 180}};
-static const int CHIME_FAIL[][2] = {{220, 250}, {0, 80}, {220, 250}, {0, 0}, {220, 250}};
+static const int CHIME_FAIL[][2] = {{220, 250}, {0, 300}, {220, 250}, {0, 300}, {220, 250}};
 static const int BLIP_START[][2] = {{1200, 60}};
 static const int BLIP_STOP[][2] = {{880, 60}};
 
@@ -169,7 +169,7 @@ void setup() {
   wifiConnect(20000);
 
   if (wifiUp() && rec_buf) {
-    playTones(CHIME_BOOT, 3);
+    playTones(CHIME_BOOT, 5);
   } else {
     playTones(CHIME_FAIL, 5);
   }
@@ -185,7 +185,7 @@ void loop() {
   if (!rec_buf || !wifiUp()) {  // degraded: recover wifi forever
     M5.delay(5000);
     if (!wifiConnect(10000) && rec_buf) return;
-    playTones(CHIME_BOOT, 3);
+    playTones(CHIME_BOOT, 5);
     return;
   }
 
